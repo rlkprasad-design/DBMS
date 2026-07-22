@@ -54,8 +54,9 @@ subject under the same GitHub account, give it its own prefix too - see
     type is just new content, not a schema migration.
   - `source` is a free-text category tag for the curator's own
     organization (e.g. "Transactions (ACID)") - never shown to players.
-- `data/levels.json` - grid size range and filler mode, matching BA Quest's
-  9-15 range.
+- `data/levels.json` - grid size range and filler mode: 9-13 (smaller than
+  BA Quest's 9-15 - lowered after real play found 15x15 grids uncomfortably
+  large; see the decision below).
 - `scripts/validate-content.js` - run with `node scripts/validate-content.js`
   before shipping any content change. No dependencies.
 
@@ -64,8 +65,12 @@ subject under the same GitHub account, give it its own prefix too - see
 Same as BA Quest, for consistency across the two apps:
 
 - **Tracing/handwriting mode**: not included.
-- **Max grid size**: 15x15 (fits longer single-word DBMS terms like
-  NORMALIZATION/DECOMPOSITION/INCONSISTENCY).
+- **Max grid size**: 13x13 - lowered from an initial 15x15 after real play
+  found the largest grids uncomfortably big on a laptop screen. Only two
+  words needed 15 (`SERIALIZABILITY`, `SELFREFERENCING`); both were renamed
+  to shorter, equally standard terms (`SERIALIZABLE`, `SELFJOIN`) rather
+  than dropped, so no content was lost. The longest word now (13 chars:
+  NORMALIZATION/DECOMPOSITION/INCONSISTENCY) exactly matches the new cap.
 - **Reward tiers**: Bronze / Silver / Gold for easy / medium / difficult,
   worth 1 / 3 / 6 base marks - mapped to grouped Bloom's Taxonomy levels
   (easy = Remember+Understand, medium = Apply+Analyze, difficult =
