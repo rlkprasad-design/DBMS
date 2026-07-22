@@ -301,3 +301,60 @@ export function isPoolExhausted(playerName, questionsData) {
   const exposureCounts = getExposureCounts(playerName);
   return questionsData.entries.every((e) => (exposureCounts[e.word] || 0) >= EXPOSURE_CAP);
 }
+
+// True/False: draw from the same mixed-difficulty pool as word search/
+// spelling, then for each word flip a coin - heads, show its own claim
+// (true); tails, borrow a claim from a different entry of the same
+// difficulty tier (falling back to any other entry) so an impostor claim
+// doesn't stand out just by looking harder or easier than the real one.
+// The borrowed entry isn't itself counted as exposed, since it isn't
+// really being asked about.
+export function drawTrueFalseSet(playerName, questionsData, count = 10) {
+  const { selected } = drawMixedWordSet(playerName, questionsData.entries, count, Infinity);
+  if (selected.length === 0) return null;
+
+  return selected.map((entry) => {
+    const isTrue = Math.random() < 0.5;
+    if (isTrue) {
+      return { word: entry.word, difficulty: entry.difficulty, isTrue, claimText: entry.scenario || entry.meaning };
+    }
+    const sameTier = questionsData.entries.filter((e) => e.word !== entry.word && e.difficulty === entry.difficulty);
+    const pool = sameTier.length > 0 ? sameTier : questionsData.entries.filter((e) => e.word !== entry.word);
+    const impostor = pool[randInt(0, pool.length - 1)];
+    return { word: entry.word, difficulty: entry.difficulty, isTrue, claimText: impostor.scenario || impostor.meaning };
+  });
+}
+
+// Card Grouping needs no new content: it buckets by each entry's existing
+// `source` tag (already present purely for curator organization elsewhere)
+// rather than any new taxonomy. Only offers categories with 2+ not-yet-
+// exposure-capped members; returns null once fewer than 2 such categories
+// remain, so callers know to show the "seen everything" screen.
+export function drawGroupingRound(playerName, questionsData, { categoryCount = 3, cardsPerCategory = 3 } = {}) {
+  const exposureCounts = getExposureCounts(playerName);
+  const bySource = new Map();
+  for (const entry of questionsData.entries) {
+    if ((exposureCounts[entry.word] || 0) >= EXPOSURE_CAP) continue;
+    if (!bySource.has(entry.source)) bySource.set(entry.source, []);
+    bySource.get(entry.source).push(entry);
+  }
+  const eligibleSources = [...bySource.entries()].filter(([, list]) => list.length >= 2);
+  if (eligibleSources.length < 2) return null;
+
+  const chosenSources = shuffle(eligibleSources).slice(0, categoryCount);
+  const categories = chosenSources.map(([source, list]) => ({
+    source,
+    cards: shuffle(list)
+      .slice(0, Math.min(cardsPerCategory, list.length))
+      .map((e) => ({ word: e.word, difficulty: e.difficulty })),
+  }));
+
+  for (const category of categories) {
+    for (const card of category.cards) {
+      exposureCounts[card.word] = (exposureCounts[card.word] || 0) + 1;
+    }
+  }
+  setExposureCounts(playerName, exposureCounts);
+
+  return categories;
+}
