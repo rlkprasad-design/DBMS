@@ -65,11 +65,16 @@ Same as BA Quest, for consistency across the two apps:
 
 - **Tracing/handwriting mode**: not included.
 - **Max grid size**: 15x15 (fits longer single-word DBMS terms like
-  SERIALIZABILITY/NORMALIZATION).
+  NORMALIZATION/DECOMPOSITION/INCONSISTENCY).
 - **Reward tiers**: Bronze / Silver / Gold for easy / medium / difficult,
-  worth 1 / 3 / 6 marks - mapped to grouped Bloom's Taxonomy levels (easy =
-  Remember+Understand, medium = Apply+Analyze, difficult =
+  worth 1 / 3 / 6 base marks - mapped to grouped Bloom's Taxonomy levels
+  (easy = Remember+Understand, medium = Apply+Analyze, difficult =
   Evaluate+Create).
+- **Mode multiplier**: Word Search ("crossword") awards double a tier's base
+  marks per find; Spelling awards the base value as-is. Finding a word
+  hidden among filler letters is a harder recall task than assembling it
+  from an already-isolated letter tray, so it's worth more - see
+  `MODE_MULTIPLIERS` in `js/gems.js`.
 - **`scenario` field**: present in the schema from day one.
 
 ## Puzzle engine notes

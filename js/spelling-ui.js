@@ -1,5 +1,5 @@
 import { drawSpellingSet, incrementPuzzlesCompleted } from './puzzle-engine.js';
-import { TIER_TOKENS, celebrateFind } from './gems.js';
+import { TIER_TOKENS, celebrateFind, marksForFind } from './gems.js';
 import { recordFind, flagTerm } from './supabase-client.js';
 
 function shuffledLetters(word) {
@@ -16,13 +16,13 @@ function shuffledLetters(word) {
 }
 
 export function renderSpelling(container, { questionsData, playerName, onExhausted }) {
-  const words = drawSpellingSet(playerName, questionsData, 8);
+  const words = drawSpellingSet(playerName, questionsData, 12);
 
   if (!words) {
     container.innerHTML = `
       <div class="exhausted panel">
         <h2>You've seen everything here!</h2>
-        <p>You've worked through every Business Analytics term at every level. Nice work.</p>
+        <p>You've worked through every DBMS term at every level. Nice work.</p>
         <button class="primary" id="switch-mode-btn">Try Word Search instead</button>
       </div>`;
     container.querySelector('#switch-mode-btn').addEventListener('click', onExhausted);
@@ -88,7 +88,7 @@ export function renderSpelling(container, { questionsData, playerName, onExhaust
 
     card.querySelector(`[data-clear="${index}"]`).addEventListener('click', reset);
 
-    card.querySelector(`[data-submit="${index}"]`).addEventListener('click', async () => {
+    card.querySelector(`[data-submit="${index}"]`).addEventListener('click', () => {
       if (solved.has(index)) return;
       const feedback = card.querySelector(`[data-feedback="${index}"]`);
       const attempt = built.map((b) => b.letter).join('');
@@ -97,9 +97,9 @@ export function renderSpelling(container, { questionsData, playerName, onExhaust
         answerEl.textContent = entry.word;
         feedback.textContent = 'Correct!';
         celebrateFind(card, answerEl, entry.difficulty);
-        await recordFind(playerName, entry.difficulty, token.marks);
         card.querySelectorAll('button').forEach((b) => (b.disabled = true));
-        checkCompletion();
+        checkCompletion(); // don't gate user-facing completion on a network round-trip
+        recordFind(playerName, entry.difficulty, marksForFind(entry.difficulty, 'spelling'));
       } else {
         feedback.textContent = 'Not quite - try again.';
       }
@@ -136,7 +136,7 @@ export function renderSpelling(container, { questionsData, playerName, onExhaust
     if (solved.size < words.length) return;
     incrementPuzzlesCompleted(playerName);
     const marksEarned = words.reduce(
-      (sum, entry, i) => sum + (solved.get(i) === 'self' ? TIER_TOKENS[entry.difficulty].marks : 0),
+      (sum, entry, i) => sum + (solved.get(i) === 'self' ? marksForFind(entry.difficulty, 'spelling') : 0),
       0
     );
     const banner = container.querySelector('#completion-banner');

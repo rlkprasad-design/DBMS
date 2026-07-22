@@ -1,5 +1,5 @@
 import { generatePuzzle, incrementPuzzlesCompleted } from './puzzle-engine.js';
-import { TIER_TOKENS, celebrateFind } from './gems.js';
+import { TIER_TOKENS, celebrateFind, marksForFind } from './gems.js';
 import { recordFind, flagTerm } from './supabase-client.js';
 
 function sameCells(a, b) {
@@ -38,7 +38,7 @@ export function renderWordSearch(container, { questionsData, level, playerName, 
     container.innerHTML = `
       <div class="exhausted panel">
         <h2>You've seen everything here!</h2>
-        <p>You've worked through every Business Analytics term at every level. Nice work.</p>
+        <p>You've worked through every DBMS term at every level. Nice work.</p>
         <button class="primary" id="switch-mode-btn">Try Spelling mode instead</button>
       </div>`;
     container.querySelector('#switch-mode-btn').addEventListener('click', onExhausted);
@@ -138,14 +138,14 @@ export function renderWordSearch(container, { questionsData, level, playerName, 
     checkCompletion();
   }
 
-  async function onGenuineFind(placement) {
+  function onGenuineFind(placement) {
     solved.set(placement.word, 'self');
     markCellsFound(placement.path, 'found-self');
     const firstCell = cellEl(placement.path[0].row, placement.path[0].col);
     celebrateFind(gridEl, firstCell, placement.difficulty);
     renderHints();
-    await recordFind(playerName, placement.difficulty, TIER_TOKENS[placement.difficulty].marks);
-    checkCompletion();
+    checkCompletion(); // don't gate user-facing completion on a network round-trip
+    recordFind(playerName, placement.difficulty, marksForFind(placement.difficulty, 'wordsearch'));
   }
 
   function checkCompletion() {
@@ -153,7 +153,7 @@ export function renderWordSearch(container, { questionsData, level, playerName, 
     incrementPuzzlesCompleted(playerName);
     const marksEarned = placements
       .filter((p) => solved.get(p.word) === 'self')
-      .reduce((sum, p) => sum + TIER_TOKENS[p.difficulty].marks, 0);
+      .reduce((sum, p) => sum + marksForFind(p.difficulty, 'wordsearch'), 0);
     const banner = container.querySelector('#completion-banner');
     banner.innerHTML = `
       <strong>Puzzle complete! +${marksEarned} marks.</strong>
