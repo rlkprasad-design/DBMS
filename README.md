@@ -1,9 +1,10 @@
 # DBMS Quest
 
 A calm, laptop-first recall game for Database Management Systems terms -
-word search and spelling/unscramble modes, with a shared class scoreboard.
-Sibling app to BA Quest (Business Analytics) - same engine, same
-previously-fixed bugs avoided, different subject content.
+word search, spelling/unscramble, true/false, and card grouping modes,
+with a shared class scoreboard. Sibling app to BA Quest (Business
+Analytics) - same engine, same previously-fixed bugs avoided, different
+subject content.
 
 ## Running locally
 
@@ -75,11 +76,12 @@ Same as BA Quest, for consistency across the two apps:
   worth 1 / 3 / 6 base marks - mapped to grouped Bloom's Taxonomy levels
   (easy = Remember+Understand, medium = Apply+Analyze, difficult =
   Evaluate+Create).
-- **Mode multiplier**: Word Search ("crossword") awards double a tier's base
-  marks per find; Spelling awards the base value as-is. Finding a word
-  hidden among filler letters is a harder recall task than assembling it
-  from an already-isolated letter tray, so it's worth more - see
-  `MODE_MULTIPLIERS` in `js/gems.js`.
+- **Mode multiplier**: Word Search ("crossword") and Card Grouping award
+  double a tier's base marks per find; Spelling and True/False award the
+  base value as-is. Finding a word hidden among filler letters, or
+  correctly recalling which category a term belongs to, is a harder recall
+  task than assembling a word from an already-isolated letter tray or
+  making a binary true/false call - see `MODE_MULTIPLIERS` in `js/gems.js`.
 - **`scenario` field**: present in the schema from day one.
 
 ## Puzzle engine notes
@@ -89,9 +91,36 @@ of the anti-repetition draw-queue design and the exhaustion-detection fix
 (a single unlucky small-grid roll is never mistaken for "seen everything";
 a guaranteed max-grid-size fallback roll is required before concluding the
 pool is exhausted). The engine code here (`js/puzzle-engine.js`,
-`js/wordsearch-ui.js`, `js/spelling-ui.js`, `js/gems.js`, `js/identity.js`,
-`js/storage.js`) is unchanged from BA Quest except for the `dbmsquest.`
-localStorage prefix noted above.
+`js/wordsearch-ui.js`, `js/spelling-ui.js`, `js/truefalse-ui.js`,
+`js/grouping-ui.js`, `js/gems.js`, `js/identity.js`, `js/storage.js`) is
+unchanged from BA Quest except for the `dbmsquest.` localStorage prefix
+noted above (and BA Quest's `scenarios[]`-pool feature for measurement
+scales, which has no equivalent here since no DBMS term needs it).
+
+### True/False mode
+
+- `drawTrueFalseSet` (`js/puzzle-engine.js`) draws from the same mixed
+  difficulty pool as word search/spelling. For each drawn word, it flips a
+  coin: heads, the claim shown is that word's own meaning/scenario (true);
+  tails, the claim is borrowed from a different entry - preferring one of
+  the same difficulty tier so an impostor claim doesn't stand out just by
+  looking harder or easier. The borrowed entry isn't itself counted as
+  exposed, since it isn't really being asked about.
+- Marks are only awarded for a genuine correct guess. "Show answer" reveals
+  the truth and locks the card, but earns nothing, matching the same
+  convention as word search/spelling.
+
+### Card Grouping mode
+
+- `drawGroupingRound` needs no new content: it buckets by each entry's
+  existing `source` tag (already present purely for curator organization
+  elsewhere) rather than any new taxonomy. It only offers categories with 2
+  or more not-yet-exposure-capped members, and returns `null` (triggering
+  the "seen everything" screen) once fewer than 2 such categories remain.
+- Placing a card correctly awards marks immediately and removes it from the
+  tray; placing it in the wrong bucket shakes that bucket and leaves the
+  card selected for another attempt. A round completes once every drawn
+  card has been correctly placed.
 
 ## Known gap from this environment
 
@@ -102,8 +131,10 @@ that doesn't require reaching those hosts was verified in a real Chromium
 browser: the name gate and history notice, word-search drag-to-find
 (including the gem-burst animation's actual rendered bounding box), the
 "Show answer" visual distinction, spelling mode's letter-click-to-build
-flow, and the scoreboard's graceful no-crash fallback when Supabase can't
-be reached. The actual round-trip to Supabase (writing a score, reading
+flow, true/false's answer/lock/reveal flow, card grouping's
+select-then-place flow (including the wrong-bucket shake), and the
+scoreboard's graceful no-crash fallback when Supabase can't be reached.
+The actual round-trip to Supabase (writing a score, reading
 the scoreboard back, submitting a flag) could not be exercised from this
 environment and should be checked once deployed.
 
