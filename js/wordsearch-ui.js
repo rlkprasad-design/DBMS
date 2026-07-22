@@ -31,7 +31,7 @@ function computeDragPath(start, current, gridSize) {
   return path;
 }
 
-export function renderWordSearch(container, { questionsData, level, playerName, onExhausted }) {
+export function renderWordSearch(container, { questionsData, level, playerName, onExhausted, onMarksEarned }) {
   const puzzle = generatePuzzle(playerName, questionsData, level);
 
   if (!puzzle) {
@@ -144,8 +144,10 @@ export function renderWordSearch(container, { questionsData, level, playerName, 
     const firstCell = cellEl(placement.path[0].row, placement.path[0].col);
     celebrateFind(gridEl, firstCell, placement.difficulty);
     renderHints();
+    const marks = marksForFind(placement.difficulty, 'wordsearch');
+    onMarksEarned(marks); // immediate, local, independent of Supabase
     checkCompletion(); // don't gate user-facing completion on a network round-trip
-    recordFind(playerName, placement.difficulty, marksForFind(placement.difficulty, 'wordsearch'));
+    recordFind(playerName, placement.difficulty, marks);
   }
 
   function checkCompletion() {
@@ -159,7 +161,7 @@ export function renderWordSearch(container, { questionsData, level, playerName, 
       <strong>Puzzle complete! +${marksEarned} marks.</strong>
       <button class="primary" id="next-puzzle-btn">Next puzzle</button>`;
     banner.querySelector('#next-puzzle-btn').addEventListener('click', () => {
-      renderWordSearch(container, { questionsData, level, playerName, onExhausted });
+      renderWordSearch(container, { questionsData, level, playerName, onExhausted, onMarksEarned });
     });
   }
 

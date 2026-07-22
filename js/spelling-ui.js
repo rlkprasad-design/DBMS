@@ -15,7 +15,7 @@ function shuffledLetters(word) {
   return shuffled;
 }
 
-export function renderSpelling(container, { questionsData, playerName, onExhausted }) {
+export function renderSpelling(container, { questionsData, playerName, onExhausted, onMarksEarned }) {
   const words = drawSpellingSet(playerName, questionsData, 12);
 
   if (!words) {
@@ -98,8 +98,10 @@ export function renderSpelling(container, { questionsData, playerName, onExhaust
         feedback.textContent = 'Correct!';
         celebrateFind(card, answerEl, entry.difficulty);
         card.querySelectorAll('button').forEach((b) => (b.disabled = true));
+        const marks = marksForFind(entry.difficulty, 'spelling');
+        onMarksEarned(marks); // immediate, local, independent of Supabase
         checkCompletion(); // don't gate user-facing completion on a network round-trip
-        recordFind(playerName, entry.difficulty, marksForFind(entry.difficulty, 'spelling'));
+        recordFind(playerName, entry.difficulty, marks);
       } else {
         feedback.textContent = 'Not quite - try again.';
       }
@@ -144,7 +146,7 @@ export function renderSpelling(container, { questionsData, playerName, onExhaust
       <strong>Set complete! +${marksEarned} marks.</strong>
       <button class="primary" id="next-set-btn">Next set</button>`;
     banner.querySelector('#next-set-btn').addEventListener('click', () => {
-      renderSpelling(container, { questionsData, playerName, onExhausted });
+      renderSpelling(container, { questionsData, playerName, onExhausted, onMarksEarned });
     });
   }
 }
