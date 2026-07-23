@@ -60,6 +60,16 @@ subject under the same GitHub account, give it its own prefix too - see
     type is just new content, not a schema migration.
   - `source` is a free-text category tag for the curator's own
     organization (e.g. "Transactions (ACID)") - never shown to players.
+  - An entry can use `scenarios` (a non-empty array of strings) instead of
+    a single `scenario` string, when one word has many distinct confusing
+    examples worth asking about rather than just one - `resolveScenario` in
+    `js/puzzle-engine.js` picks one at random every time that word is
+    drawn. Applied to the core DBMS operations (COMMIT/ROLLBACK/INSERT/
+    UPDATE/DELETE), CONCURRENCY, and all four ACID properties (8-9
+    scenarios each) - situational examples spanning UPI transfers, Tatkal/
+    IRCTC bookings, ride-hailing, food delivery, universities, and airline
+    booking systems, so a small fixed set of possible answers still feels
+    close to inexhaustible across many replays.
 - `data/levels.json` - grid size range and filler mode: 9-13 (smaller than
   BA Quest's 9-15 - lowered after real play found 15x15 grids uncomfortably
   large; see the decision below).
@@ -99,8 +109,9 @@ pool is exhausted). The engine code here (`js/puzzle-engine.js`,
 `js/wordsearch-ui.js`, `js/spelling-ui.js`, `js/truefalse-ui.js`,
 `js/grouping-ui.js`, `js/gems.js`, `js/identity.js`, `js/storage.js`) is
 unchanged from BA Quest except for the `dbmsquest.` localStorage prefix
-noted above (and BA Quest's `scenarios[]`-pool feature for measurement
-scales, which has no equivalent here since no DBMS term needs it).
+noted above. `resolveScenario`/`scenarios[]` (originally added for BA
+Quest's measurement scales) is now used here too, for the core DBMS
+operations and ACID properties - see "Content" above.
 
 - **Per-mode scoreboard breakdown**: `dbms_scores` carries a `..._marks`
   column per game mode (`wordsearch_marks`, `spelling_marks`,
