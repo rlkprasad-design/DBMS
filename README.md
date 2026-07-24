@@ -72,9 +72,9 @@ Same as BA Quest, for consistency across the two apps:
   Evaluate+Create).
 - **Mode multiplier**: Word Search ("crossword") awards double a tier's base
   marks per find; Spelling awards the base value as-is. Finding a word
-  hidden among filler letters is a harder recall task than assembling it
-  from an already-isolated letter tray, so it's worth more - see
-  `MODE_MULTIPLIERS` in `js/gems.js`.
+  hidden among filler letters is a harder recall task than typing it from
+  its jumbled-letters hint, so it's worth more - see `MODE_MULTIPLIERS`
+  in `js/gems.js`.
 - **`scenario` field**: present in the schema from day one.
 
 ## Puzzle engine notes
@@ -96,9 +96,9 @@ blocks arbitrary external hosts, including `esm.sh` (used to load
 that doesn't require reaching those hosts was verified in a real Chromium
 browser: the name gate and history notice, word-search drag-to-find
 (including the gem-burst animation's actual rendered bounding box), the
-"Show answer" visual distinction, spelling mode's letter-click-to-build
-flow, and the scoreboard's graceful no-crash fallback when Supabase can't
-be reached. The actual round-trip to Supabase (writing a score, reading
+"Show answer" visual distinction, spelling mode's type-to-answer flow,
+and the scoreboard's graceful no-crash fallback when Supabase can't be
+reached. The actual round-trip to Supabase (writing a score, reading
 the scoreboard back, submitting a flag) could not be exercised from this
 environment and should be checked once deployed.
 
