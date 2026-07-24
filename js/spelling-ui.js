@@ -1,6 +1,7 @@
 import { drawSpellingSet, incrementPuzzlesCompleted } from './puzzle-engine.js';
 import { TIER_TOKENS, celebrateFind, marksForFind } from './gems.js';
 import { recordFind, flagTerm } from './supabase-client.js';
+import { randomAffirmation } from './affirmations.js';
 
 function shuffledLetters(word) {
   const letters = word.split('');
@@ -127,6 +128,7 @@ export function renderSpelling(container, { questionsData, playerName, onExhaust
     const banner = container.querySelector('#completion-banner');
     banner.innerHTML = `
       <strong>Set complete! +${marksEarned} marks.</strong>
+      <p class="affirmation">${randomAffirmation()}</p>
       <button class="primary" id="next-set-btn">Next set</button>`;
     banner.querySelector('#next-set-btn').addEventListener('click', () => {
       renderSpelling(container, { questionsData, playerName, onExhausted, onMarksEarned });

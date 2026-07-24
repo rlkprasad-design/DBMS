@@ -1,6 +1,7 @@
 import { generatePuzzle, incrementPuzzlesCompleted } from './puzzle-engine.js';
 import { TIER_TOKENS, celebrateFind, marksForFind } from './gems.js';
 import { recordFind, flagTerm } from './supabase-client.js';
+import { randomAffirmation } from './affirmations.js';
 
 function sameCells(a, b) {
   if (a.length !== b.length) return false;
@@ -159,6 +160,7 @@ export function renderWordSearch(container, { questionsData, level, playerName, 
     const banner = container.querySelector('#completion-banner');
     banner.innerHTML = `
       <strong>Puzzle complete! +${marksEarned} marks.</strong>
+      <p class="affirmation">${randomAffirmation()}</p>
       <button class="primary" id="next-puzzle-btn">Next puzzle</button>`;
     banner.querySelector('#next-puzzle-btn').addEventListener('click', () => {
       renderWordSearch(container, { questionsData, level, playerName, onExhausted, onMarksEarned });
