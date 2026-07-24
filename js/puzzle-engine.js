@@ -45,6 +45,20 @@ function randInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+// Some entries carry a `scenarios` array (a pool of alternate situational
+// clues) instead of a single `scenario` string. This lets a word present a
+// large, non-repeating set of confusing questions across its exposures,
+// without needing fake duplicate word+difficulty entries. Resolved once
+// per draw - not re-randomized on every re-render within the same
+// puzzle/round.
+export function resolveScenario(entry) {
+  if (Array.isArray(entry.scenarios) && entry.scenarios.length > 0) {
+    const picked = entry.scenarios[randInt(0, entry.scenarios.length - 1)];
+    return { ...entry, scenario: picked };
+  }
+  return entry;
+}
+
 export function getPuzzlesCompleted(playerName) {
   return readPlayerJson(PUZZLES_COMPLETED_KEY, playerName, 0);
 }
@@ -256,7 +270,7 @@ function drawMixedWordSet(playerName, entries, totalCount, sizeLimit) {
   }
   setExposureCounts(playerName, exposureCounts);
 
-  return { selected, puzzlesCompleted };
+  return { selected: selected.map(resolveScenario), puzzlesCompleted };
 }
 
 // Returns null only when the pool is genuinely exhausted (every word at
@@ -320,7 +334,7 @@ export function drawTrueFalseSet(playerName, questionsData, count = 10) {
     }
     const sameTier = questionsData.entries.filter((e) => e.word !== entry.word && e.difficulty === entry.difficulty);
     const pool = sameTier.length > 0 ? sameTier : questionsData.entries.filter((e) => e.word !== entry.word);
-    const impostor = pool[randInt(0, pool.length - 1)];
+    const impostor = resolveScenario(pool[randInt(0, pool.length - 1)]);
     return { word: entry.word, difficulty: entry.difficulty, isTrue, claimText: impostor.scenario || impostor.meaning };
   });
 }
